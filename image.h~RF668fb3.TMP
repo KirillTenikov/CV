@@ -1,0 +1,20 @@
+#ifndef IMAGE_H
+#define IMAGE_H
+#include<vector>
+using namespace std;
+class Image
+{
+public:
+    Image(vector<double> data, int width, int height);
+    double& getPixel(int x, int y);
+    double  getPixelValue(int x, int y);
+
+
+
+private:
+ int width;
+ int height;
+ vector<double> data;
+};
+
+#endif // IMAGE_H

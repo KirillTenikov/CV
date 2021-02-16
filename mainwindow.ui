@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLabel" name="label">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="openFile"/>
+    <addaction name="save"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Фильтрация</string>
+    </property>
+    <addaction name="filtration"/>
+    <addaction name="gauss"/>
+    <addaction name="xDerivative"/>
+    <addaction name="yDerivative"/>
+    <addaction name="sobel"/>
+   </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="title">
+     <string>Настройки</string>
+    </property>
+    <addaction name="options"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menu_2"/>
+   <addaction name="menu_3"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="openFile">
+   <property name="text">
+    <string>Открыть</string>
+   </property>
+  </action>
+  <action name="filtration">
+   <property name="text">
+    <string>Произвольный фильтр</string>
+   </property>
+  </action>
+  <action name="gauss">
+   <property name="text">
+    <string>Гаусс</string>
+   </property>
+  </action>
+  <action name="xDerivative">
+   <property name="text">
+    <string>Произваодная Х</string>
+   </property>
+  </action>
+  <action name="yDerivative">
+   <property name="text">
+    <string>Производная Y</string>
+   </property>
+  </action>
+  <action name="sobel">
+   <property name="text">
+    <string>Собель</string>
+   </property>
+  </action>
+  <action name="options">
+   <property name="text">
+    <string>Опции</string>
+   </property>
+  </action>
+  <action name="save">
+   <property name="text">
+    <string>Сохранить</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
