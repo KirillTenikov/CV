@@ -9,9 +9,9 @@ class ImageFilterRep
 public:
     ImageFilterRep (vector<double> aData, int aWidth, int aHeight);
 
-    static ImageFilterRep getGaussKernel(double sigma, int n);
-    static ImageFilterRep getGaussX(double sigma, int n);
-    static ImageFilterRep getGaussY(double sigma, int n);
+    static ImageFilterRep getGaussKernel(double sigma);
+    static ImageFilterRep getGaussX(double sigma);
+    static ImageFilterRep getGaussY(double sigma);
     static ImageFilterRep getSobelXDerivative();
     static ImageFilterRep getSobelYDerivative();
 

@@ -15,8 +15,9 @@ ImageFilterRep::ImageFilterRep(vector<double> aData, int aWidth, int aHeight)
 }
 
 
-ImageFilterRep ImageFilterRep::getGaussKernel(double sigma, int n)
+ImageFilterRep ImageFilterRep::getGaussKernel(double sigma)
 {
+    int n=sigma*3+1;
     ImageFilterRep filter=ImageFilterRep(vector<double>((n*2+1)*(n*2+1)),n*2+1,n*2+1);
     double value;
     for(int i=-filter.getKernerlHeight();i<=0;i++)
@@ -35,8 +36,9 @@ ImageFilterRep ImageFilterRep::getGaussKernel(double sigma, int n)
 
 }
 
-ImageFilterRep ImageFilterRep::getGaussX(double sigma, int n)
+ImageFilterRep ImageFilterRep::getGaussX(double sigma)
 {
+    int n=sigma*3+1;
     ImageFilterRep filter=ImageFilterRep(vector<double>(n*2+1),n*2+1,0);
 
     double value;
@@ -50,9 +52,10 @@ ImageFilterRep ImageFilterRep::getGaussX(double sigma, int n)
     return filter;
 }
 
-ImageFilterRep ImageFilterRep::getGaussY(double sigma, int n)
+ImageFilterRep ImageFilterRep::getGaussY(double sigma)
 {
-    ImageFilterRep filter=ImageFilterRep(vector<double>(n*2+1),0,n*2+1);
+   int n=sigma*3+1;
+   ImageFilterRep filter=ImageFilterRep(vector<double>(n*2+1),0,n*2+1);
     double value;
      for(int i=-filter.getKernerlHeight();i<=0;i++){
         value=exp((-i*i)/(2*sigma*sigma));
