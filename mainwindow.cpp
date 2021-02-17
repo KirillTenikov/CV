@@ -74,7 +74,7 @@ void MainWindow::on_gauss_triggered()
     gaussDialog->setModal(true);
     if(gaussDialog->exec()==QDialog::Accepted)
      {
-        ImageFilterRep filter=ImageFilterRep::getGaussKernel(gaussDialog->getSigma(),gaussDialog->getN());
+        ImageFilterRep filter=ImageFilterRep::getGaussKernel(gaussDialog->getSigma());
         filter.setSeparability(gaussDialog->getSeparability());
         *cvImage*=filter;
         showImage();

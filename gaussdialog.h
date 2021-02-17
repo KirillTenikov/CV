@@ -15,7 +15,6 @@ public:
     explicit GaussDialog(QWidget *parent = nullptr);
     ~GaussDialog();
 
-    int getN();
     double getSigma();
     bool getSeparability();
 private:

@@ -13,10 +13,7 @@ GaussDialog::~GaussDialog()
     delete ui;
 }
 
-int GaussDialog::getN()
-{
-   return ui->lineEdit->text().toInt();
-}
+
 
 double GaussDialog::getSigma()
 {
