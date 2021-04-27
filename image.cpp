@@ -226,3 +226,61 @@ ImageFilterRep& ImageFilterRep::sobel()
     (this->power(2)+=tempImage.power(2)).power(0.5);
     return *this;
  }
+
+ImageFilterRep& ImageFilterRep::downSample()
+{
+    vector<double> newData=vector<double>((getHeight()/2)*(getWidth()/2));
+    int k=0;
+    for(int i=0;i<getHeight()/2;i++)
+       for(int j=0;j<getWidth()/2;j++)
+        newData[k++]=getPixel(j*2,i*2);
+
+
+    *this=ImageFilterRep(newData,getWidth()/2, getHeight()/2);
+     return *this;
+ }
+
+void ImageFilterRep::buildPyramid(int octaves, int levels, double alphaSigma, double sigma)
+{
+  setSigma(alphaSigma);
+  setEffectiveSigma(alphaSigma);
+  double nextSigma=sigma;
+  double curSigma=alphaSigma;
+  double aEffectiveSigma=sigma;
+  ImageFilterRep templFilt=ImageFilterRep::getGaussKernel(sqrt(nextSigma*nextSigma-curSigma*curSigma));
+  ImageFilterRep tempImage=*this;
+  tempImage*=templFilt;
+  pyramid=vector<vector<ImageFilterRep>>(octaves);
+
+  for(int i=0; i<octaves;i++){
+    tempImage.setSigma(nextSigma);
+    tempImage.setEffectiveSigma(aEffectiveSigma);
+    pyramid[i].push_back(tempImage);
+    for(int j=0; j<levels;j++){
+       aEffectiveSigma*=pow(2,1./levels);
+       curSigma=nextSigma;
+       nextSigma=curSigma*pow(2,1./levels);
+       templFilt=ImageFilterRep::getGaussKernel(sqrt(nextSigma*nextSigma-curSigma*curSigma));
+       tempImage.setSigma(nextSigma);
+       tempImage.setEffectiveSigma(aEffectiveSigma);
+       pyramid[i].push_back(tempImage*=templFilt);
+      }
+     tempImage.downSample();
+     nextSigma=sigma;
+    }
+}
+
+double ImageFilterRep::L(int x, int y, double aSigma)
+{
+    if (pyramid.empty())return -1;
+
+    double k=1./(pyramid[0].size()-1);
+    int index = round(log(aSigma/effectiveSigma)/log(k));
+    if(index<0)index=0;
+     else if(index>pyramid[0].size()*pyramid.size()-1)index=pyramid[0].size()*pyramid.size()-1;
+    int octave=index/pyramid[0].size();
+    int level=index%pyramid[0].size();
+    return pyramid[octave][level].getPixelValue(x/pow(2,octave),y/pow(2,octave));
+}
+
+

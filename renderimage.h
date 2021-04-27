@@ -7,29 +7,15 @@
 
 using namespace std;
 
-enum Format {PAL, NTVD};
-
-class RenderImage
-{
-public:
-    RenderImage(unsigned char *aData, int aSize);
-    vector<double> processRawData(Format format);
-    unsigned char* render(vector<double> data);
-
-    int getSize(){return size;}
-    unsigned char* getData(){return data;}
-
-    ~RenderImage(){delete[]data;}
 
 
-private:
-    unsigned char *data;
-    int size;
+namespace RenderImage {
 
-    void turnGreyPAL();
-    void turnGreyNTVD();
-    void linearNormalization(vector<double> &data);
-    void linearReNormalization(vector<double> &data);
+   enum Format {PAL, NTVD};
+
+   vector<double> processRawData(unsigned char* data, int size, Format format);
+   unsigned char* render(vector<double> data);
+
 };
 
 #endif // RENDERIMAGE_H

@@ -3,8 +3,6 @@
 #include <QDir>
 #include <QFileDialog>
 
-
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -26,14 +24,15 @@ void MainWindow::initImage(QString fileName)
     img.load(fileName);
     img=img.convertToFormat(QImage::Format::Format_ARGB32,0);
     ui->label->setScaledContents(true);
-    render=unique_ptr<RenderImage>(new RenderImage(img.bits(),img.sizeInBytes()));
-    cvImage =unique_ptr<ImageFilterRep>(new ImageFilterRep(render->processRawData(Format::PAL),img.width(),img.height()));
+    cvImage =unique_ptr<ImageFilterRep>(new ImageFilterRep(processRawData(img.bits(),img.sizeInBytes(),RenderImage::Format::PAL),img.width(),img.height()));
 }
 
 void MainWindow::showImage()
 {
-    QImage img=QImage(render->render(cvImage->getData()),cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+    unsigned char* data=RenderImage::render(cvImage->getData());
+    QImage img=QImage(data, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
     ui->label->setPixmap(QPixmap::fromImage(img));
+    delete [] data;
 
 }
 
@@ -113,8 +112,31 @@ void MainWindow::on_options_triggered()
 }
 void MainWindow::on_save_triggered()
 {
-    QImage img=QImage(render->render(cvImage->getData()),cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+    unsigned char*data=RenderImage::render(cvImage->getData());
+    QImage img=QImage(data, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
     QString fileName=QFileDialog::getSaveFileName(this,"Сохранить файл",QDir::homePath(), "Image Files (*.png)");
     if (!fileName.isEmpty())
         img.save(fileName);
+    delete [] data;
+}
+
+
+void MainWindow::on_pyramid_triggered()
+{
+    pyramidDialog=unique_ptr<PyramidDialog>(new PyramidDialog(this));
+    pyramidDialog->setModal(true);
+    if(pyramidDialog->exec()==QDialog::Accepted)
+     {
+       cvImage->buildPyramid(pyramidDialog->getOctaves(),pyramidDialog->getLevels(),pyramidDialog->getAlphaSigma(), pyramidDialog->getSigma());
+       vector<vector<ImageFilterRep>>cvImages=cvImage->getPyramid();
+       for(int i=0;i<cvImages.size();i++)
+           for(int j=0;j<cvImages[i].size();j++) {
+             unsigned char*data=RenderImage::render(cvImages[i][j].getData());
+             QImage img=QImage(data,cvImages[i][j].getWidth(),cvImages[i][j].getHeight(),QImage::Format::Format_ARGB32);
+             QString fileName=QDir::homePath()+"/sigma_"+QString::number(cvImages[i][j].getSigma())+"effectivesigma_"+QString::number(cvImages[i][j].getEffectiveSigma())+".png";
+             if (!fileName.isEmpty())
+               img.save(fileName);
+             delete [] data;
+           }
+    }
 }

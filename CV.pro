@@ -15,6 +15,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     options.cpp \
+    pyramiddialog.cpp \
     renderimage.cpp
 
 HEADERS += \
@@ -23,13 +24,15 @@ HEADERS += \
     image.h \
     mainwindow.h \
     options.h \
+    pyramiddialog.h \
     renderimage.h
 
 FORMS += \
     filterdialog.ui \
     gaussdialog.ui \
     mainwindow.ui \
-    options.ui
+    options.ui \
+    pyramiddialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

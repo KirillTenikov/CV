@@ -22,6 +22,7 @@ public:
     double& getPoint(int x, int y);
     double& getPixel(int x, int y);
     double  getPixelValue(int x, int y);
+    double L(int x, int y, double sigma);
 
     vector<double>getData(){return data;}
     int getWidth(){return width;}
@@ -31,6 +32,16 @@ public:
     bool isSeparable(){return separable;}
     void setSeparability(bool aSeparable){separable=aSeparable;}
     void setMode(Mode aMode){mode=aMode;}
+    vector<vector<ImageFilterRep>> getPyramid(){return pyramid;}
+    double getSigma(){return sigma;}
+    double getEffectiveSigma(){return effectiveSigma;}
+    void setSigma(double aSigma){sigma=aSigma;}
+    void setEffectiveSigma(double aEffetctiveSigma){effectiveSigma=aEffetctiveSigma;}
+
+    ImageFilterRep& downSample();
+    void buildPyramid(int octaves, int levels, double alphaSigma, double sigma);
+
+
 
     ImageFilterRep& power(double power);
     ImageFilterRep& sobel();
@@ -48,11 +59,16 @@ private:
  int kernelHeight;
  bool separable=false;
 
+ double sigma;
+ double effectiveSigma;
+
  Mode mode=Mode::basic;
  vector<double> data;
+ vector<vector<ImageFilterRep>> pyramid;
 
  ImageFilterRep& simpleConvolution(ImageFilterRep filter);
  ImageFilterRep& separatableConvolution(ImageFilterRep filter);
+
 };
 
 

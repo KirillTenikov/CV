@@ -7,6 +7,7 @@
 #include "filterdialog.h"
 #include "gaussdialog.h"
 #include "options.h"
+#include "pyramiddialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -37,15 +38,18 @@ private slots:
 
     void on_save_triggered();
 
+    void on_pyramid_triggered();
+
 private:
     Ui::MainWindow *ui;
 
     unique_ptr<FilterDialog>filterDialog;
     unique_ptr<GaussDialog>gaussDialog;
     unique_ptr<Options>options;
+    unique_ptr<PyramidDialog>pyramidDialog;
+
 
     unique_ptr<ImageFilterRep>cvImage;
-    unique_ptr<RenderImage>render;
 
     void initImage(QString fileName);
     void showImage();
