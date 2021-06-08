@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->menu_2->setEnabled(false);
     ui->menu_3->setEnabled(false);
+    ui->menu_4->setEnabled(false);
+    ui->menu_5->setEnabled(false);
     ui->save->setEnabled(false);
 }
 
@@ -47,6 +49,8 @@ void MainWindow::on_openFile_triggered()
       ui->menu_2->setEnabled(true);
       ui->menu_3->setEnabled(true);
       ui->save->setEnabled(true);
+      ui->menu_4->setEnabled(true);
+      ui->menu_5->setEnabled(true);
 
     }
     }
@@ -138,5 +142,98 @@ void MainWindow::on_pyramid_triggered()
                img.save(fileName);
              delete [] data;
            }
+    }
+}
+
+
+void MainWindow::on_moraveck_triggered()
+{
+    pointsDialog=unique_ptr<points>(new points(this));
+    pointsDialog->setModal(true);
+
+    if(pointsDialog->exec()==QDialog::Accepted)
+    {
+      ImageFilterRep cvImageMaxMin=cvImage->moraveck(pointsDialog->getWindow(),pointsDialog->getP());
+      unsigned char*initialData=RenderImage::renderWithPointsDetector(cvImage->getData().size(),cvImage->getIndexesPoints());
+      unsigned char*dataMaxMin=RenderImage::renderMaxMin(cvImageMaxMin.getData());
+      cvImage->filterThreshold(pointsDialog->getThreshold(), cvImageMaxMin);
+      unsigned char*intermdediateData=RenderImage::renderWithPointsDetector(cvImage->getData().size(),cvImage->getIndexesPoints());
+      unsigned char*finalData=RenderImage::renderWithPoints(cvImage->getData(),cvImage->getIndexesPoints());
+      QImage imgIntial=QImage(initialData, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+      QImage imgIntermediate=QImage(intermdediateData, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+      QImage imgFinal=QImage(finalData, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+      QImage imgMaxMin=QImage(dataMaxMin, cvImageMaxMin.getWidth(),cvImageMaxMin.getHeight(),QImage::Format::Format_ARGB32);
+      ui->label->setPixmap(QPixmap::fromImage(imgFinal));
+      QString fileName=QDir::homePath()+"/image_max.png";
+      QString fileNameInitial=QDir::homePath()+"/image_detector.png";
+      QString fileNameIntermediate=QDir::homePath()+"/image_detector_threshold.png";
+      QString fileNameFinal=QDir::homePath()+"/image_final.png";
+      imgMaxMin.save(fileName);
+      imgIntial.save(fileNameInitial);
+      imgIntermediate.save(fileNameIntermediate);
+      imgFinal.save(fileNameFinal);
+
+
+      delete [] initialData;
+      delete [] dataMaxMin;
+      delete [] intermdediateData;
+
+    }
+}
+
+void MainWindow::on_charis_triggered()
+{
+    pointsDialog=unique_ptr<points>(new points(this));
+    pointsDialog->setModal(true);
+    if(pointsDialog->exec()==QDialog::Accepted)
+    {
+        ImageFilterRep cvImageMaxMin=cvImage->harris(pointsDialog->getWindow(),pointsDialog->getP());
+        unsigned char*initialData=RenderImage::renderWithPointsDetector(cvImage->getData().size(),cvImage->getIndexesPoints());
+        unsigned char*dataMaxMin=RenderImage::renderMaxMin(cvImageMaxMin.getData());
+        cvImage->filterThreshold(pointsDialog->getThreshold(), cvImageMaxMin);
+        unsigned char*intermdediateData=RenderImage::renderWithPointsDetector(cvImage->getData().size(),cvImage->getIndexesPoints());
+        unsigned char*finalData=RenderImage::renderWithPoints(cvImage->getData(),cvImage->getIndexesPoints());
+        QImage imgIntial=QImage(initialData, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+        QImage imgIntermediate=QImage(intermdediateData, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+        QImage imgFinal=QImage(finalData, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+        QImage imgMaxMin=QImage(dataMaxMin, cvImageMaxMin.getWidth(),cvImageMaxMin.getHeight(),QImage::Format::Format_ARGB32);
+        ui->label->setPixmap(QPixmap::fromImage(imgFinal));
+        QString fileName=QDir::homePath()+"/image_max.png";
+        QString fileNameInitial=QDir::homePath()+"/image_detector.png";
+        QString fileNameIntermediate=QDir::homePath()+"/image_detector_threshold.png";
+        QString fileNameFinal=QDir::homePath()+"/image_final.png";
+        imgMaxMin.save(fileName);
+        imgIntial.save(fileNameInitial);
+        imgIntermediate.save(fileNameIntermediate);
+        imgFinal.save(fileNameFinal);
+
+        delete [] initialData;
+        delete [] dataMaxMin;
+        delete [] intermdediateData;
+
+    }
+
+}
+
+void MainWindow::on_ANMS_triggered()
+{
+    anmsDialog=unique_ptr<anms>(new anms(this));
+    anmsDialog->setModal(true);
+    if(anmsDialog->exec()==QDialog::Accepted)
+    {
+      cvImage->anms(anmsDialog->getNumber());
+      unsigned char*data=RenderImage::renderWithPoints(cvImage->getData(),cvImage->getIndexesPoints());
+      unsigned char*intermdediateData=RenderImage::renderWithPointsDetector(cvImage->getData().size(),cvImage->getIndexesPoints());
+      QImage imgFinal=QImage(data, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+      QImage imgIntermediate=QImage(intermdediateData, cvImage->getWidth(),cvImage->getHeight(),QImage::Format::Format_ARGB32);
+      ui->label->setPixmap(QPixmap::fromImage(imgFinal));
+      QString fileNameIntermediate=QDir::homePath()+"/image_detector_threshold_anms.png";
+      QString fileNameFinal=QDir::homePath()+"/image_final_anms.png";
+      imgFinal.save(fileNameFinal);
+      imgIntermediate.save(fileNameIntermediate);
+
+
+      delete [] data;
+
     }
 }

@@ -8,6 +8,8 @@
 #include "gaussdialog.h"
 #include "options.h"
 #include "pyramiddialog.h"
+#include "points.h"
+#include "anms.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -40,6 +42,12 @@ private slots:
 
     void on_pyramid_triggered();
 
+    void on_moraveck_triggered();
+
+    void on_charis_triggered();
+
+    void on_ANMS_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -47,6 +55,8 @@ private:
     unique_ptr<GaussDialog>gaussDialog;
     unique_ptr<Options>options;
     unique_ptr<PyramidDialog>pyramidDialog;
+    unique_ptr<points>pointsDialog;
+    unique_ptr<anms>anmsDialog;
 
 
     unique_ptr<ImageFilterRep>cvImage;

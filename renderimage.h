@@ -15,6 +15,11 @@ namespace RenderImage {
 
    vector<double> processRawData(unsigned char* data, int size, Format format);
    unsigned char* render(vector<double> data);
+   unsigned char* renderWithPointsDetector(int size, vector<int>points);
+   unsigned char* renderWithPoints(vector<double> data, vector<int>points);
+   unsigned char* renderMaxMin(vector<double> aData);
+
+
 
 };
 

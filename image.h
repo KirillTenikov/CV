@@ -2,6 +2,17 @@
 #define IMAGE_H
 #include<vector>
 using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+struct PointsIndexes
+{
+    vector <Point> points;
+    vector<int> indexes;
+};
+
 enum Mode{basic, continuation, reflection};
 
 class ImageFilterRep
@@ -25,6 +36,8 @@ public:
     double L(int x, int y, double sigma);
 
     vector<double>getData(){return data;}
+    vector<Point>getPoints(){return points;}
+    vector<int>getIndexesPoints(){return indexes;}
     int getWidth(){return width;}
     int getHeight(){return height;}
     int getKernerlWidth(){return kernelWidth;}
@@ -40,6 +53,15 @@ public:
 
     ImageFilterRep& downSample();
     void buildPyramid(int octaves, int levels, double alphaSigma, double sigma);
+
+
+
+    PointsIndexes getMaxPoints(int p, ImageFilterRep &minMax);
+    void filterThreshold(double t, ImageFilterRep &minMax);
+    ImageFilterRep moraveck(int window, int p);
+    ImageFilterRep harris(int window,int p);
+    void anms(int number);
+
 
 
 
@@ -64,10 +86,16 @@ private:
 
  Mode mode=Mode::basic;
  vector<double> data;
+
  vector<vector<ImageFilterRep>> pyramid;
+
+
+ vector<Point>points;
+ vector<int> indexes;
 
  ImageFilterRep& simpleConvolution(ImageFilterRep filter);
  ImageFilterRep& separatableConvolution(ImageFilterRep filter);
+
 
 };
 

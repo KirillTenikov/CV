@@ -15,6 +15,8 @@ ImageFilterRep::ImageFilterRep(vector<double> aData, int aWidth, int aHeight)
 }
 
 
+
+
 ImageFilterRep ImageFilterRep::getGaussKernel(double sigma)
 {
     int n=sigma*3+1;
@@ -283,4 +285,111 @@ double ImageFilterRep::L(int x, int y, double aSigma)
     return pyramid[octave][level].getPixelValue(x/pow(2,octave),y/pow(2,octave));
 }
 
+PointsIndexes ImageFilterRep::getMaxPoints(int p, ImageFilterRep &minMax)
+{
+    PointsIndexes result;
+    Point tempPoint;
+    for (int i=0;i<getHeight();i++)
+        for (int j=0;j<getWidth();j++){
+            for(int ki=-p;ki<=p;ki++)
+                for(int kj=-p;kj<=p;kj++)
+                {
+                    if(ki==0 && kj==0)continue;
+                    if(minMax.getPixelValue(j,i)<minMax.getPixelValue(j+kj,i+ki))goto outer;
+                }
+            tempPoint.x=j; tempPoint.y=i;
+            result.points.push_back(tempPoint);
+            result.indexes.push_back(i*getWidth()+j);
+            outer:continue;
+        }
+    return result;
+}
 
+void ImageFilterRep::filterThreshold(double t, ImageFilterRep &minMax)
+{
+    for (int i=0;i<points.size();i++)
+        if(minMax.getPixelValue(points[i].x, points[i].y)<t){
+            points.erase(points.begin()+i);
+            indexes.erase(indexes.begin()+i);
+            i--;
+        }
+     int l=0;
+
+}
+
+ImageFilterRep ImageFilterRep::moraveck(int window, int p)
+{
+    ImageFilterRep operatorResult=*this;
+    PointsIndexes rslt;
+    vector<double> ssd(8);
+    double result=0;
+    int k;
+    for (int i=0;i<operatorResult.getHeight();i++)
+        for (int j=0;j<operatorResult.getWidth();j++)
+        {
+          k=0;      
+          for (int dY=-1;dY<=1;dY++)
+              for (int dX=-1;dX<=1;dX++){
+                  if(dY==0 && dX==0)continue;
+                   for(int ki=-window; ki<=window;ki++)
+                       for(int kj=-window; kj<=window;kj++)
+                           result+=pow(getPixelValue(j+kj,i+ki)-getPixelValue(j+kj+dX, i+ki+dY),2);
+                   ssd[k++]=result;
+                   result=0;
+
+              }
+          operatorResult.getPixel(j,i)=*min_element(ssd.begin(), ssd.end());
+        }
+    rslt=operatorResult.getMaxPoints(p,operatorResult);
+    points=rslt.points;
+    indexes=rslt.indexes;
+    return operatorResult;
+}
+
+ImageFilterRep ImageFilterRep::harris(int window,int p)
+{
+    double a=0,b=0,c=0, trace, det;
+    PointsIndexes rslt;
+    ImageFilterRep xDer=ImageFilterRep::getSobelXDerivative();
+    ImageFilterRep yDer=ImageFilterRep::getSobelYDerivative();
+    ImageFilterRep imageXder=*this;
+    ImageFilterRep imageYder=*this;
+    ImageFilterRep operatorResult =*this;
+    imageXder*=xDer;imageYder*=yDer;
+    for (int i=0;i<operatorResult.getHeight();i++)
+        for (int j=0;j<operatorResult.getWidth();j++)
+        {
+            for (int ki=-window;ki<=window;ki++)
+                for (int kj=-window;kj<=window;kj++){
+                    a+=imageXder.getPixelValue(j+kj,i+ki);
+                    c+=imageYder.getPixelValue(j+kj,i+ki);
+                    b+=imageXder.getPixelValue(j+kj,i+ki)*imageYder.getPixelValue(j+kj,i+ki);
+                }
+            trace=a+c;
+            det=a*c-b*b;
+            a=b=c=0;
+            if(trace>0)operatorResult.getPixel(j,i)=abs((trace-sqrt(trace*trace-4*det))/2);
+             else operatorResult.getPixel(j,i)=abs((trace-sqrt(trace*trace-4*det))/2);
+
+        }
+    rslt=operatorResult.getMaxPoints(p, operatorResult);
+    points=rslt.points;
+    indexes=rslt.indexes;
+    return operatorResult;
+
+}
+
+void ImageFilterRep::anms(int number){
+  int r=2;
+  while(points.size()>number){
+   for(int i=0; i<points.size();i++)
+      for(int j=i+1;j<points.size();j++)
+        if (points[j].x<=points[i].x+r && points[j].y<=points[i].y+r &&
+              points[j].x>=points[i].x-r && points[j].y>=points[i].y-r){
+                points.erase(points.begin()+j);
+                indexes.erase(indexes.begin()+j);
+                j--;
+        }
+   r++;
+  }
+}

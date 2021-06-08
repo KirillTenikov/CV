@@ -74,10 +74,19 @@
     </property>
     <addaction name="pyramid"/>
    </widget>
+   <widget class="QMenu" name="menu_5">
+    <property name="title">
+     <string>Интересные точки</string>
+    </property>
+    <addaction name="moraveck"/>
+    <addaction name="charis"/>
+    <addaction name="ANMS"/>
+   </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
    <addaction name="menu_3"/>
    <addaction name="menu_4"/>
+   <addaction name="menu_5"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="openFile">
@@ -123,6 +132,21 @@
   <action name="pyramid">
    <property name="text">
     <string>Построить пирамиду</string>
+   </property>
+  </action>
+  <action name="moraveck">
+   <property name="text">
+    <string>Моравек</string>
+   </property>
+  </action>
+  <action name="charis">
+   <property name="text">
+    <string>Харрис</string>
+   </property>
+  </action>
+  <action name="ANMS">
+   <property name="text">
+    <string>ANMS</string>
    </property>
   </action>
  </widget>
