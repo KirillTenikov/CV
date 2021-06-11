@@ -236,8 +236,7 @@ ImageFilterRep& ImageFilterRep::sobelAngle()
     ImageFilterRep tempImage=*this;
     *this*=filterX;
     tempImage*=filterY;
-    transform(data.begin(),data.end(),tempImage.getData().begin(),data.begin(),[=](double x, double y){
-        double result=atan2(y,x); return result>0?result:2*M_PI+result;});
+    transform(data.begin(),data.end(),tempImage.getData().begin(),data.begin(),[=](double x, double y){return atan2(y,x);});
     return *this;
  }
 
@@ -433,8 +432,6 @@ void ImageFilterRep::calcDescriptors(int n, int gridX, int gridY, int  pixels)
     for(int k=0; k<descriptors.size();k++)
     {
         kk=0;
-        descriptors[k].resize(gridX*gridY);
-
         for(int i=windowSizeY%2?-windowSizeY/2:-windowSizeY/2+1;i<=windowSizeY/2;i+=pixels)
             for(int j=windowSizeX%2?-windowSizeX/2:-windowSizeX/2+1;j<=windowSizeX/2;j+=pixels){
                 descriptors[k][kk]=dsc;
@@ -444,71 +441,28 @@ void ImageFilterRep::calcDescriptors(int n, int gridX, int gridY, int  pixels)
                        angle=gradientAngle.getPixelValue(points[k].x+j+kj,points[k].y+i+ki);
                        value=gradientAmplitude.getPixelValue(points[k].x+j+kj,points[k].y+i+ki);
                        up=descriptors[k][kk].lower_bound(angle);
-                       if(up==descriptors[k][kk].begin()){
+                       if(up==descriptors[k][kk].begin())
                           coefficient=(up->first-angle)/(angle+M_PI/n);
-                          low=prev(descriptors[k][kk].end());
-                       }
                        else {
                          low=prev(up);
-                         if(up==descriptors[k][kk].end()){
+                         if(up==descriptors[k][kk].end())
                             coefficient=(2*M_PI+M_PI/n-angle)/(angle-low->first);
-                            up=descriptors[k][kk].begin();
-                         }
                          else
                            coefficient=(up->first-angle)/(angle-low->first);
                        }
-                       if(coefficient<=1){
-                        low->second+=value*coefficient;
-                        up->second+=value*(1-coefficient);
-                       }
-                       else
-                       {
-                           up->second+=value*1/coefficient;
-                           low->second+=value*(1-1/coefficient);
-                       }
-
+                       low->second=value*coefficient;
+                       up->second=value*(1-coefficient);
 
                     }
-                norm=accumulate(descriptors[k][kk].begin(),descriptors[k][kk].end(), 0.0, [=](double value, pair<double, double> p)
+                norm=accumulate(descriptors[k][kk].begin(),descriptors[k][kk].end(), 0, [=](int value, pair<double, double> p)
                                   {return value+pow(p.second,2);});
-                for (auto& [key, value] : descriptors[k][kk])value/=sqrt(norm);
-
+                transform(descriptors[k][kk].begin(),descriptors[k][kk].end(),inserter(descriptors[k][kk],descriptors[k][kk].end()),
+                        [=](pair<double, double> p){p.second/=norm; return p;});
 
                 kk++;
             }
     }
 
-}
-
-vector<pair<Point, Point>> ImageFilterRep::findClosePoints(ImageFilterRep &img2)
-{
-  vector<pair<Point, Point>>result(points.size());
-  vector<double> distance(img2.getPoints().size());
-  if(points.size()>img2.getPoints().size())
-   {
-      result.resize(img2.getPoints().size());
-      distance.resize(this->points.size());
-      for(int i=0; i<result.size(); i++)
-      {
-          for(int j=0; j<points.size();j++)
-           distance[j]=calcDistanceDescriptors(descriptors[j], img2.getDescriptors()[i]);
-
-         result[i].first=points[min_element(distance.begin(), distance.end())-distance.begin()];
-         result[i].second=img2.points[i];
-
-      }
-
-   }
-  else
-      for(int i=0; i<result.size(); i++)
-      {
-          for(int j=0; j<img2.points.size();j++)
-           distance[j]=calcDistanceDescriptors(descriptors[i], img2.getDescriptors()[j]);
-
-         result[i].first=points[i];
-         result[i].second=img2.points[min_element(distance.begin(), distance.end())-distance.begin()];
-      }
-  return result;
 }
 
 

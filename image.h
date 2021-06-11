@@ -1,6 +1,6 @@
 #ifndef IMAGE_H
 #define IMAGE_H
-#include<vector>
+#include "descriptor.h"
 using namespace std;
 
 struct Point {
@@ -12,6 +12,10 @@ struct PointsIndexes
     vector <Point> points;
     vector<int> indexes;
 };
+
+
+
+
 
 enum Mode{basic, continuation, reflection};
 
@@ -38,6 +42,7 @@ public:
     vector<double>getData(){return data;}
     vector<Point>getPoints(){return points;}
     vector<int>getIndexesPoints(){return indexes;}
+    vector<Descriptor> getDescriptors(){return descriptors;}
     int getWidth(){return width;}
     int getHeight(){return height;}
     int getKernerlWidth(){return kernelWidth;}
@@ -66,7 +71,17 @@ public:
 
 
     ImageFilterRep& power(double power);
+
     ImageFilterRep& sobel();
+    ImageFilterRep& sobelAngle();
+
+    void calcDescriptors(int  n, int gridX, int gridY, int  pixels);
+    vector<pair<Point, Point>> findClosePoints(ImageFilterRep &image2);
+
+
+
+
+
 
     ImageFilterRep& operator *=(ImageFilterRep filter);
     ImageFilterRep& operator+=(ImageFilterRep image);
@@ -89,15 +104,19 @@ private:
 
  vector<vector<ImageFilterRep>> pyramid;
 
-
  vector<Point>points;
  vector<int> indexes;
+
+ vector<Descriptor> descriptors;
 
  ImageFilterRep& simpleConvolution(ImageFilterRep filter);
  ImageFilterRep& separatableConvolution(ImageFilterRep filter);
 
 
 };
+
+
+
 
 
 

@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "renderimage.h"
 #include "image.h"
 #include "filterdialog.h"
 #include "gaussdialog.h"
@@ -10,6 +9,7 @@
 #include "pyramiddialog.h"
 #include "points.h"
 #include "anms.h"
+#include "pointsmatch.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -48,6 +48,10 @@ private slots:
 
     void on_ANMS_triggered();
 
+    void on_add_triggered();
+
+    void on_matching_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -57,11 +61,18 @@ private:
     unique_ptr<PyramidDialog>pyramidDialog;
     unique_ptr<points>pointsDialog;
     unique_ptr<anms>anmsDialog;
+    unique_ptr<PointsMatch>pointsMatchDialog;
+
 
 
     unique_ptr<ImageFilterRep>cvImage;
+    unique_ptr<ImageFilterRep>cvImageSecondary;
+
 
     void initImage(QString fileName);
     void showImage();
+    void initSecondaryImage(QString fileName);
+    void showImagePoints();
+    void showPrmAndSecImg();
 };
 #endif // MAINWINDOW_H

@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <iostream>
 
-namespace RenderImage  {
 
-namespace  {
+
+namespace RenderImage {
 
 void turnGreyPAL(unsigned char *data, int size)
         {
@@ -45,6 +45,18 @@ void linearReNormalization(vector<double> &aData)
       *it=(*it-min)*255/(max-min);
 }
 
+void linearReNormalization(vector<double> &aData1, vector<double>& aData2)
+{
+    double max1=*max_element(aData1.begin(), aData1.end());
+    double min1=*min_element(aData1.begin(), aData1.end());
+    double max2=*max_element(aData2.begin(), aData2.end());
+    double min2=*min_element(aData2.begin(), aData2.end());
+    double max=max1>=max2?max1:max2;
+    double min=min1<=min2?min1:min2;
+    for(vector<double>::iterator it=aData1.begin();it!=aData1.end(); ++it)
+     *it=(*it-min)*255/(max-min);
+    for(vector<double>::iterator it=aData2.begin();it!=aData2.end(); ++it)
+     *it=(*it-min)*255/(max-min);
 
 }
 
@@ -75,6 +87,67 @@ unsigned char* render(vector<double> aData)
         }
         return data;
       }
+
+unsigned char* renderTwoImages(vector<double> aData1, int width1, int height1, vector<double> aData2, int width2, int height2)
+     {
+        int height=height1>=height2?height1:height2;
+        int size=(height*(width1+width2))*4;
+        unsigned char *data=new unsigned char[size];
+        linearReNormalization(aData1, aData2);
+        int k=0;
+        for(int i=0;i<height;i++)
+         if(height2>height1 && i>=height1){
+           for(int j=0;j<width1;j++)
+           {
+              data[k]=data[k+1]=data[k+2]=data[k+3]=255;
+              k+=4;
+           }
+           for(int j=0;j<width2;j++)
+           {
+               data[k]=data[k+1]=data[k+2]=aData2[i*width2+j];
+               data[k+3]=255;
+               k+=4;
+
+           }
+          }
+          else
+            if(height1>height2 && i>=height2)
+            {
+                       for(int j=0;j<width1;j++)
+                       {
+                           data[k]=data[k+1]=data[k+2]=aData1[i*width1+j];
+                           data[k+3]=255;
+                           k+=4;
+                       }
+                       for(int j=0;j<width2;j++)
+                       {
+                           data[k]=data[k+1]=data[k+2]=data[k+3]=255;
+                           k+=4;
+
+                       }
+                      }
+              else{
+                for(int j=0;j<width1;j++)
+                {
+                    data[k]=data[k+1]=data[k+2]=aData1[i*width1+j];
+                    data[k+3]=255;
+                    k+=4;
+                }
+                for(int j=0;j<width2;j++)
+                {
+                    data[k]=data[k+1]=data[k+2]=aData2[i*width2+j];
+                    data[k+3]=255;
+                    k+=4;
+
+                }
+            }
+
+
+        return data;
+      }
+
+
+
 unsigned char* renderWithPoints(vector<double> aData, vector<int>points)
      {
         int size=aData.size()*4,k=0;
@@ -136,7 +209,6 @@ unsigned char* renderMaxMin(vector<double> aData)
     return data;
 
 }
-
 
 
 

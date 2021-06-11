@@ -51,6 +51,7 @@
     </property>
     <addaction name="openFile"/>
     <addaction name="save"/>
+    <addaction name="add"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -82,11 +83,18 @@
     <addaction name="charis"/>
     <addaction name="ANMS"/>
    </widget>
+   <widget class="QMenu" name="menu_6">
+    <property name="title">
+     <string>Сопоставление точек</string>
+    </property>
+    <addaction name="matching"/>
+   </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
    <addaction name="menu_3"/>
    <addaction name="menu_4"/>
    <addaction name="menu_5"/>
+   <addaction name="menu_6"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="openFile">
@@ -147,6 +155,16 @@
   <action name="ANMS">
    <property name="text">
     <string>ANMS</string>
+   </property>
+  </action>
+  <action name="add">
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+  </action>
+  <action name="matching">
+   <property name="text">
+    <string>Сопоставить</string>
    </property>
   </action>
  </widget>

@@ -10,6 +10,7 @@ CONFIG += c++11
 
 SOURCES += \
     anms.cpp \
+    descriptor.cpp \
     filterdialog.cpp \
     gaussdialog.cpp \
     image.cpp \
@@ -17,17 +18,20 @@ SOURCES += \
     mainwindow.cpp \
     options.cpp \
     points.cpp \
+    pointsmatch.cpp \
     pyramiddialog.cpp \
     renderimage.cpp
 
 HEADERS += \
     anms.h \
+    descriptor.h \
     filterdialog.h \
     gaussdialog.h \
     image.h \
     mainwindow.h \
     options.h \
     points.h \
+    pointsmatch.h \
     pyramiddialog.h \
     renderimage.h
 
@@ -38,6 +42,7 @@ FORMS += \
     mainwindow.ui \
     options.ui \
     points.ui \
+    pointsmatch.ui \
     pyramiddialog.ui
 
 # Default rules for deployment.
