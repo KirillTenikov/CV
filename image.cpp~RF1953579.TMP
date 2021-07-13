@@ -1,5 +1,4 @@
 #include "image.h"
-#include "utilities.h"
 #include <algorithm>
 #include <functional>
 #include <cmath>
@@ -20,7 +19,7 @@ ImageFilterRep::ImageFilterRep(vector<double> aData, int aWidth, int aHeight)
 
 ImageFilterRep ImageFilterRep::getGaussKernel(double sigma)
 {
-    int n=round(sigma*3+1);
+    int n=sigma*3+1;
     ImageFilterRep filter=ImageFilterRep(vector<double>((n*2+1)*(n*2+1)),n*2+1,n*2+1);
     double value;
     for(int i=-filter.getKernerlHeight();i<=0;i++)
@@ -39,32 +38,12 @@ ImageFilterRep ImageFilterRep::getGaussKernel(double sigma)
 
 }
 
-
-ImageFilterRep ImageFilterRep::getGaussWithEvenKernel(int n)
-{
-    double sigma=(n-2)/6.;
-    ImageFilterRep filter=ImageFilterRep(vector<double>((n)*(n)),n,n);
-    double value;
-    for(int i=-filter.getHeight()/2+1;i<=filter.getHeight()/2;i++)
-        for(int j=-filter.getWidth()/2+1;j<=filter.getWidth()/2;j++){
-            value=exp((-j*j-i*i)/(2*sigma*sigma));
-            filter.getPointEvenKernel(j,i)=value;
-        }
-
-    double sum=accumulate(filter.data.begin(),filter.data.end(),0.0);
-    filter*=1/sum;
-    filter.separable=false;
-    return filter;
-
-}
-
-
-
 ImageFilterRep ImageFilterRep::getLaplassianKernel(double sigma)
 {
-    int n=round(sigma*3+1);
+    int n=sigma*3+1;
     ImageFilterRep filter=ImageFilterRep(vector<double>((n*2+1)*(n*2+1)),n*2+1,n*2+1);
     double value;
+    double sum=0;
     for(int i=-filter.getKernerlHeight();i<=0;i++)
         for(int j=-filter.getKernerlWidth();j<=0;j++){
             value=(j*j+i*i-2*sigma*sigma)*exp((-j*j-i*i)/(2*sigma*sigma));
@@ -72,9 +51,9 @@ ImageFilterRep ImageFilterRep::getLaplassianKernel(double sigma)
             filter.getPoint(-j,-i)=value;
             filter.getPoint(-j,i)=value;
             filter.getPoint(j,-i)=value;
+            sum+=4*abs(value);
         }
 
-    double sum=accumulate(filter.data.begin(),filter.data.end(),0.0);
     filter*=1/sum;
     filter.separable=false;
     return filter;
@@ -82,11 +61,9 @@ ImageFilterRep ImageFilterRep::getLaplassianKernel(double sigma)
 }
 
 
-
-
 ImageFilterRep ImageFilterRep::getGaussX(double sigma)
 {
-    int n=round(sigma*3+1);
+    int n=sigma*3+1;
     ImageFilterRep filter=ImageFilterRep(vector<double>(n*2+1),n*2+1,0);
 
     double value;
@@ -102,7 +79,7 @@ ImageFilterRep ImageFilterRep::getGaussX(double sigma)
 
 ImageFilterRep ImageFilterRep::getGaussY(double sigma)
 {
-   int n=round(sigma*3+1);
+   int n=sigma*3+1;
    ImageFilterRep filter=ImageFilterRep(vector<double>(n*2+1),0,n*2+1);
     double value;
      for(int i=-filter.getKernerlHeight();i<=0;i++){
@@ -148,11 +125,6 @@ ImageFilterRep ImageFilterRep::getFilterY()
 double& ImageFilterRep::getPoint(int x, int y)
 {
     return data[(y+kernelHeight)*(kernelWidth*2+1)+(x+kernelWidth)];
-}
-
-double& ImageFilterRep::getPointEvenKernel(int x, int y)
-{
-    return data[(y+kernelHeight-1)*(kernelWidth*2)+(x+kernelWidth-1)];
 }
 
 
@@ -211,20 +183,11 @@ double ImageFilterRep::getPixelValueInterpolation(double x, double y)
     double fX1Y0=getPixelValue(ceil(x), floor(y));
     double fX0Y1=getPixelValue(floor(x), ceil(y));
     double fX1Y1=getPixelValue(ceil(x), ceil(y));
-    double fXY0, fXY1, result;
-    if(ceil(x)!=floor(x)){
-      fXY0=(ceil(x)-x)/(ceil(x)-floor(x))*fX0Y0+(x-floor(x))/(ceil(x)-floor(x))*fX1Y0;
-      fXY1=(ceil(x)-x)/(ceil(x)-floor(x))*fX0Y1+(x-floor(x))/(ceil(x)-floor(x))*fX1Y1;
-    }
-    else {
-      fXY0=fX0Y0;
-      fXY1=fX0Y1;
-        }
 
-    if(ceil(y)!=floor(y))result=(ceil(y)-y)/(ceil(y)-floor(y))*fXY0+(y-floor(y))/(ceil(y)-floor(y))*fXY1;
-     else result=fXY0;
+    double fXY0=(ceil(x)-x)/(ceil(x)-floor(x))*fX0Y0+(x-floor(x))/(ceil(x)-floor(x))*fX1Y0;
+    double fXY1=(ceil(x)-x)/(ceil(x)-floor(x))*fX0Y1+(x-floor(x))/(ceil(x)-floor(x))*fX1Y1;
 
-    return result;
+    return (ceil(y)-y)/(ceil(y)-floor(y))*fXY0+(y-floor(y))/(ceil(y)-floor(y))*fXY1;
 }
 
 
@@ -362,32 +325,18 @@ double ImageFilterRep::L(int x, int y, double aSigma)
 {
     if (pyramid.empty())return -1;
 
-    int k=pyramid[0].size()-1;
-    int index = round(log(aSigma/pyramid[0][0].getEffectiveSigma())/log(2)*k);
+    double k=1./(pyramid[0].size()-1);
+    int index = round(log(aSigma/effectiveSigma)/log(k));
     if(index<0)index=0;
-     else if(index>pyramid.size()*k+1)index=pyramid.size()*k+1;
-    int octave=index/k;
-    int level=index%k;
+     else if(index>pyramid[0].size()*pyramid.size()-1)index=pyramid[0].size()*pyramid.size()-1;
+    int octave=index/pyramid[0].size();
+    int level=index%pyramid[0].size();
     return pyramid[octave][level].getPixelValue(x/pow(2,octave),y/pow(2,octave));
 }
 
-double ImageFilterRep::interpolatedL(double x, double y, double aSigma)
+PointsIndexes ImageFilterRep::getMaxPoints(int p, ImageFilterRep &minMax)
 {
-    if (pyramid.empty())return -1;
-
-    int k=pyramid[0].size()-1;
-    int index =  round(log(aSigma/pyramid[0][0].getEffectiveSigma())/log(2)*k);
-    if(index<0)index=0;
-     else if(index>pyramid.size()*k+1)index=pyramid.size()*k;
-    int octave=index/k;
-    int level=index%k;
-    return pyramid[octave][level].getPixelValueInterpolation(x/pow(2,octave),y/pow(2,octave));
-}
-
-void ImageFilterRep::getMaxPoints(int p, ImageFilterRep &minMax)
-{
-    points.clear();
-    indexes.clear();
+    PointsIndexes result;
     Point tempPoint;
     for (int i=0;i<getHeight();i++)
         for (int j=0;j<getWidth();j++){
@@ -398,11 +347,11 @@ void ImageFilterRep::getMaxPoints(int p, ImageFilterRep &minMax)
                     if(minMax.getPixelValue(j,i)<minMax.getPixelValue(j+kj,i+ki))goto outer;
                 }
             tempPoint.x=j; tempPoint.y=i;
-           points.push_back(tempPoint);
-           indexes.push_back(i*getWidth()+j);
-           outer:continue;
+            result.points.push_back(tempPoint);
+            result.indexes.push_back(i*getWidth()+j);
+            outer:continue;
         }
-
+    return result;
 }
 
 void ImageFilterRep::filterThreshold(double t, ImageFilterRep &minMax)
@@ -419,6 +368,7 @@ void ImageFilterRep::filterThreshold(double t, ImageFilterRep &minMax)
 ImageFilterRep ImageFilterRep::moraveck(int window, int p)
 {
     ImageFilterRep operatorResult=*this;
+    PointsIndexes rslt;
     vector<double> ssd(8);
     double result=0;
     int k;
@@ -438,13 +388,16 @@ ImageFilterRep ImageFilterRep::moraveck(int window, int p)
               }
           operatorResult.getPixel(j,i)=*min_element(ssd.begin(), ssd.end());
         }
-    getMaxPoints(p,operatorResult);
+    rslt=operatorResult.getMaxPoints(p,operatorResult);
+    points=rslt.points;
+    indexes=rslt.indexes;
     return operatorResult;
 }
 
 ImageFilterRep ImageFilterRep::harris(int window,int p)
 {
     double a=0,b=0,c=0, trace, det;
+    PointsIndexes rslt;
     ImageFilterRep operatorResult=*this;
     ImageFilterRep xDer=ImageFilterRep::getSobelXDerivative();
     ImageFilterRep yDer=ImageFilterRep::getSobelYDerivative();
@@ -467,7 +420,9 @@ ImageFilterRep ImageFilterRep::harris(int window,int p)
              a=b=c=0;
 
         }
-    getMaxPoints(p, operatorResult);
+    rslt=operatorResult.getMaxPoints(p, operatorResult);
+    points=rslt.points;
+    indexes=rslt.indexes;
     return operatorResult;
 
 }
@@ -508,7 +463,6 @@ void ImageFilterRep::calcDescriptors(int n, int gridX, int gridY, int  pixels)
     double angle;
     double coefficient;
     double norm;
-
 
     for(double p=M_PI/n;p<2*M_PI;p+=2*M_PI/n )
        dsc.insert(pair<double, double>(p,0));
@@ -567,16 +521,16 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
     int windowSizeX=gridX*pixels;
     int windowSizeY=gridY*pixels;
 
-    ImageFilterRep gaussianForOrientation=ImageFilterRep::getGaussKernel(sigma*2.3);
-    ImageFilterRep gaussianDsc=ImageFilterRep::getGaussKernel(2.3*sigma);
-
-    buildPyramid(2,2,0,1);
+    ImageFilterRep laplassianResult=*this;
+    ImageFilterRep laplassian=ImageFilterRep::getLaplassianKernel(sigma);
+    laplassianResult*=laplassian;
+    laplassianResult.setMode(Mode::continuation);
 
     map<double, double> dsc0;
     map<double, double> dsc1;
     map<double, double>::iterator up, low;
 
-
+    double alpha;
     double x;
     double y;
     int kk;
@@ -586,8 +540,6 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
     double angle;
     double coefficient;
     double norm;
-
-    double coefficientX, coefficientY;
 
 
 
@@ -614,13 +566,13 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
            dsc0.insert(pair<double, double>(p,0));
 
 
-        for(int i=-gaussianForOrientation.getKernerlHeight();i<=gaussianForOrientation.getKernerlHeight();i++)
-           for(int j=-gaussianForOrientation.getKernerlWidth();j<=gaussianForOrientation.getKernerlWidth();j++)
+        for(int i=windowSizeY%2?-windowSizeY/2:-windowSizeY/2+1;i<=windowSizeY/2;i++)
+           for(int j=windowSizeX%2?-windowSizeX/2:-windowSizeX/2+1;j<=windowSizeX/2;j++)
            {
-               value=gaussianForOrientation.getPoint(j,i)*sqrt(pow(L(points[k].x+1+j,points[k].y+i, sigma)-L(points[k].x-1+j,points[k].y+i,sigma),2)+
-                                   pow(L(points[k].x+j,points[k].y+1+i, sigma)-L(points[k].x+j,points[k].y-1+i, sigma),2));
-               angle=atan2(L(points[k].x+j,points[k].y+1+i,sigma)-L(points[k].x+j,points[k].y-1+i, sigma),
-                                 L(points[k].x+1+j,points[k].y+i, sigma)-L(points[k].x-1+j,points[k].y+i, sigma));
+               value=sqrt(pow(laplassianResult.getPixelValue(points[k].x+1+j,points[k].y+i)-laplassianResult.getPixelValue(points[k].x-1+j,points[k].y+i),2)+
+                                   pow(laplassianResult.getPixelValue(points[k].x+j,points[k].y+1+i)-laplassianResult.getPixelValue(points[k].x+j,points[k].y-1+i),2));
+               angle=atan2(laplassianResult.getPixelValue(points[k].x+j,points[k].y+1+i)-laplassianResult.getPixelValue(points[k].x+j,points[k].y-1+i),
+                                  laplassianResult.getPixelValue(points[k].x+1+j,points[k].y+i)-laplassianResult.getPixelValue(points[k].x-1+j,points[k].y+i));
                angle=angle>=0?angle:2*M_PI+angle;
 
 
@@ -642,53 +594,39 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
                    up->second+=value*(1-coefficient);
            }
 
-
-
-         vector<double> alpha;
-         auto it=max_element(dsc0.begin(),dsc0.end(),[](const pair<double, double> &a,const pair<double, double> &b)
-                               {return a.second<b.second;});
-
-         double tempValue=it->second;
-         alpha.push_back(it->first);
-         dsc0.erase(it);
-         it=max_element(dsc0.begin(),dsc0.end(),[](const pair<double, double> &a,const pair<double, double> &b)
-                                                                            {return a.second<b.second;});
-         if(it->second>=tempValue*0.8)
-         {
-             alpha.push_back(it->first);
-             points.insert(points.begin()+k+1, points[k]);
-             indexes.insert(indexes.begin()+k+1, indexes[k]);
-             descriptors.insert(descriptors.begin()+k+1, descriptors[k]);
-         }
+         alpha=max_element(dsc0.begin(),dsc0.end(),[](const pair<double, double> &a,const pair<double, double> &b)
+                                                                            {return a.second<b.second;})->first;
          dsc0.clear();
 
-         for(int indexAngle=0; indexAngle<alpha.size(); indexAngle++){
-         for(int i=-windowSizeY/2;i<=windowSizeY/2;i+=pixels){
-            if(i==0)i++;         
-            for(int j=-windowSizeX/2;j<=windowSizeX/2;j+=pixels){
-                if(j==0)j++;
+         reverseDirectionY=false;
+         reverseDirectionX=false;
+         y=(windowSizeY%2?-windowSizeY/2:-windowSizeY/2+1)*cos(alpha)-(windowSizeX%2?-windowSizeX/2:-windowSizeX/2+1)*sin(alpha);
+         x=(windowSizeX%2?-windowSizeX/2:-windowSizeX/2+1)*cos(alpha)-(windowSizeY%2?-windowSizeY/2:-windowSizeY/2+1)*sin(alpha);
+         if(y>0){diagramY=gridY-1;reverseDirectionY=true;}else diagramY=0;
+         if(x>0){diagramX=gridX-1;reverseDirectionX=true;}else diagramX=0;
+         for(int i=windowSizeY%2?-windowSizeY/2:-windowSizeY/2+1;i<=windowSizeY/2;i+=pixels){
+            if(reverseDirectionX)diagramX=gridX-1;else  diagramX=0;
+            for(int j=windowSizeX%2?-windowSizeX/2:-windowSizeX/2+1;j<=windowSizeX/2;j+=pixels){
+                kk=diagramY*gridX+diagramX;
                  for(int ki=0;ki<pixels;ki++)
                     for(int kj=0;kj<pixels;kj++)
                     {
 
-                       x=(j+kj)*cos(alpha[indexAngle])+(i+ki)*sin(alpha[indexAngle]);
-                       y=(i+ki)*cos(alpha[indexAngle])-(j+kj)*sin(alpha[indexAngle]);
-                       calcGridCoordinates(x,y, &diagramX, &diagramY, &coefficientX, &coefficientY);
-                       kk=diagramY*gridX+diagramX;
+                       x=(j+kj)*cos(alpha)+(i+ki)*sin(alpha);
+                       y=(i+ki)*cos(alpha)-(j+kj)*sin(alpha);
 
 
-
-                       angle=atan2(L(points[k].x+j+kj,points[k].y+i+ki+1,sigma)-L(points[k].x+j+kj,points[k].y+i+ki-1, sigma),
-                                   L(points[k].x+j+kj+1,points[k].y+i+ki, sigma)-L(points[k].x+j+kj-1,points[k].y+i+ki, sigma));
-                       value=gaussianDsc.getPoint(j+kj,i+ki)*sqrt(pow(L(points[k].x+j+kj+1,points[k].y+i+ki,sigma)-L(points[k].x+j+kj-1,points[k].y+i+ki,sigma),2)+
-                                  pow(L(points[k].x+j+kj,points[k].y+i+ki+1,sigma)-L(points[k].x+j+kj,points[k].y+i+ki-1,sigma),2));
+                       angle=atan2(laplassianResult.getPixelValueInterpolation(points[k].x+x,points[k].y+y+1)-laplassianResult.getPixelValueInterpolation(points[k].x+x,points[k].y+y-1),
+                                   laplassianResult.getPixelValueInterpolation(points[k].x+x+1,points[k].y+y)-laplassianResult.getPixelValueInterpolation(points[k].x+x-1,points[k].y+y));
                        angle=angle>=0?angle:2*M_PI+angle;
-                       angle-=alpha[indexAngle];
+                       angle-=alpha;
                        angle=angle>=0?angle:2*M_PI+angle;
-
+                       value=sqrt(pow(laplassianResult.getPixelValueInterpolation(points[k].x+x+1,points[k].y+y)-laplassianResult.getPixelValueInterpolation(points[k].x+x-1,points[k].y+y),2)+
+                                  pow(laplassianResult.getPixelValueInterpolation(points[k].x+x,points[k].y+y+1)-laplassianResult.getPixelValueInterpolation(points[k].x+x,points[k].y+y-1),2));
                        up=descriptors[k][kk].lower_bound(angle);
                        if(up==descriptors[k][kk].begin()){
                           coefficient=(up->first-angle)/(up->first+M_PI/n1);
+                          low=prev(descriptors[k][kk].end());
                        }
                        else {
                          low=prev(up);
@@ -699,59 +637,26 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
                          else
                            coefficient=(up->first-angle)/(up->first-low->first);
                        }
-                         if(coefficientX!=0)
-                             if(coefficientY!=0)
-                              {descriptors[k][(diagramY+1)*gridX+diagramX+1][low->first]+=value*coefficient*coefficientY*coefficientX;
-                               descriptors[k][(diagramY+1)*gridX+diagramX+1][up->first]+=value*(1-coefficient)*coefficientY*coefficientX;
-                               descriptors[k][(diagramY+1)*gridX+diagramX][low->first]+=value*coefficient*coefficientY*(1-coefficientX);
-                               descriptors[k][(diagramY+1)*gridX+diagramX][up->first]+=value*(1-coefficient)*coefficientY*(1-coefficientX);
-                               descriptors[k][diagramY*gridX+diagramX+1][low->first]+=value*coefficient*(1-coefficientY)*coefficientX;
-                               descriptors[k][diagramY*gridX+diagramX+1][up->first]+=value*(1-coefficient)*(1-coefficientY)*coefficientX;
-                               low->second+=value*coefficient*(1-coefficientY)*(1-coefficientX);
-                               up->second+=value*(1-coefficient)*(1-coefficientY)*(1-coefficientX);
-                             }
-                            else
-                             {
-                                 descriptors[k][diagramY*gridX+diagramX+1][low->first]+=value*coefficient*(1-coefficientY)*coefficientX;
-                                 descriptors[k][diagramY*gridX+diagramX+1][up->first]+=value*(1-coefficient)*(1-coefficientY)*coefficientX;
-                                 low->second+=value*coefficient*(1-coefficientY)*(1-coefficientX);
-                                 up->second+=value*(1-coefficient)*(1-coefficientY)*(1-coefficientX);
-                             }
-                         else
-                          if(coefficientY!=0)
-                          {
-                              descriptors[k][(diagramY+1)*gridX+diagramX][low->first]+=value*coefficient*coefficientY*(1-coefficientX);
-                              descriptors[k][(diagramY+1)*gridX+diagramX][up->first]+=value*(1-coefficient)*coefficientY*(1-coefficientX);
-                              low->second+=value*coefficient*(1-coefficientY)*(1-coefficientX);
-                              up->second+=value*(1-coefficient)*(1-coefficientY)*(1-coefficientX);
-                          }
-                          else
-                          {
-                              low->second+=value*coefficient*(1-coefficientY)*(1-coefficientX);
-                              up->second+=value*(1-coefficient)*(1-coefficientY)*(1-coefficientX);
-
-                          }
+                           low->second+=value*coefficient;
+                           if(coefficient!=1)up->second+=value*(1-coefficient);
 
 
+                    }
 
-                       }
-             }
-
-
+             if(reverseDirectionX)diagramX--;else diagramX++;
+            }
+            if(reverseDirectionY)diagramY--;else diagramY++;
          }
-
-         /*    double superNorm=0;
+        double superNorm=0;
         for(int i=0; i<descriptors[k].size();i++){
          norm=accumulate(descriptors[k][i].begin(),descriptors[k][i].end(), 0.0, [=](double value, pair<double, double> p)
                    {return value+pow(p.second,2);});
          superNorm+=norm;
         }
         if(superNorm!=0)
-            low=prev(descriptors[k][kk].end());
          for(int i=0; i<descriptors[k].size();i++)
-          for (auto& [key, value] : descriptors[k][0])value/=sqrt(superNorm);*/
-        if(alpha.size()>1) k+=(1-indexAngle);
-    }
+          for (auto& [key, value] : descriptors[k][0])value/=sqrt(superNorm);
+
 
     }
 }
@@ -760,7 +665,7 @@ vector<pair<Point, Point>> ImageFilterRep::findClosePoints(ImageFilterRep &img2)
 {
   vector<pair<Point, Point>>result(points.size());
   vector<double> distance(img2.getPoints().size());
-  if(points.size()>img2.getPoints().size())
+  if(points.size()>=img2.getPoints().size())
    {
       result.resize(img2.getPoints().size());
       distance.resize(this->points.size());

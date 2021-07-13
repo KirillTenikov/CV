@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <qpainter.h>
+#include <QColor>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -63,10 +64,16 @@ void MainWindow::showImagePoints()
     unsigned char* data=RenderImage::renderTwoImages(cvImage->getData(), cvImage->getWidth(), cvImage->getHeight(), cvImageSecondary->getData(), cvImageSecondary->getWidth(), cvImageSecondary->getHeight());
     QImage img=QImage(data, cvImage->getWidth()+cvImageSecondary->getWidth(),cvImage->getHeight()>=cvImageSecondary->getHeight()?cvImage->getHeight():cvImageSecondary->getHeight(),QImage::Format::Format_ARGB32);
     QPixmap px=QPixmap::fromImage(img);
-    QPainter p(&px);
-    p.setPen(Qt::red);
+
     for(int i=0; i<pairPoints.size();i++)
-     p.drawLine(pairPoints[i].first.x,pairPoints[i].first.y,pairPoints[i].second.x+cvImage->getWidth(),pairPoints[i].second.y);
+    {
+        int r=rand()%256;
+        int g=rand()%256;
+        int b=rand()%256;
+        QPainter p(&px);
+        p.setPen(QColor(r,g,b));
+        p.drawLine(pairPoints[i].first.x,pairPoints[i].first.y,pairPoints[i].second.x+cvImage->getWidth(),pairPoints[i].second.y);
+    }
     ui->label->setPixmap(px);
     delete [] data;
 }
@@ -305,9 +312,28 @@ void MainWindow::on_matching_triggered()
      cvImage->anms(pointsMatchDialog->getN());
      cvImageMaxMin=cvImageSecondary->harris(pointsMatchDialog->getWindow(),pointsMatchDialog->getP());
      cvImageSecondary->filterThreshold(pointsMatchDialog->getThreshold(), cvImageMaxMin);
-     cvImage->calcDescriptors(8,2,2,4);
-     cvImageSecondary->calcDescriptors(8,2,2,4);
+     cvImage->calcDescriptors(32,1,1,32);
+     cvImageSecondary->calcDescriptors(32,1,1,32);
      showImagePoints();
 
     }
+}
+
+void MainWindow::on_matching_RI_triggered()
+{
+    pointsMatchDialog=unique_ptr<PointsMatch>(new PointsMatch(this));
+    pointsMatchDialog->setModal(true);
+    if(pointsMatchDialog->exec()==QDialog::Accepted)
+    {
+     ImageFilterRep cvImageMaxMin=cvImage->harris(pointsMatchDialog->getWindow(),pointsMatchDialog->getP());
+     cvImage->filterThreshold(pointsMatchDialog->getThreshold(), cvImageMaxMin);
+     cvImage->anms(pointsMatchDialog->getN());
+     cvImageMaxMin=cvImageSecondary->harris(pointsMatchDialog->getWindow(),pointsMatchDialog->getP());
+     cvImageSecondary->filterThreshold(pointsMatchDialog->getThreshold(), cvImageMaxMin);
+     cvImage->calcDescriptorsRI(36,8,1);
+     cvImageSecondary->calcDescriptorsRI(36,8,1);
+     showImagePoints();
+
+    }
+
 }

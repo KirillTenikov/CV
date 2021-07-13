@@ -20,7 +20,8 @@ SOURCES += \
     points.cpp \
     pointsmatch.cpp \
     pyramiddialog.cpp \
-    renderimage.cpp
+    renderimage.cpp \
+    utilities.cpp
 
 HEADERS += \
     anms.h \
@@ -33,7 +34,8 @@ HEADERS += \
     points.h \
     pointsmatch.h \
     pyramiddialog.h \
-    renderimage.h
+    renderimage.h \
+    utilities.h
 
 FORMS += \
     anms.ui \

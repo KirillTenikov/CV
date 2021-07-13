@@ -576,7 +576,7 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
     map<double, double> dsc1;
     map<double, double>::iterator up, low;
 
-
+    double alpha;
     double x;
     double y;
     int kk;
@@ -645,24 +645,17 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
 
 
          vector<double> alpha;
-         auto it=max_element(dsc0.begin(),dsc0.end(),[](const pair<double, double> &a,const pair<double, double> &b)
-                               {return a.second<b.second;});
-
-         double tempValue=it->second;
-         alpha.push_back(it->first);
-         dsc0.erase(it);
-         it=max_element(dsc0.begin(),dsc0.end(),[](const pair<double, double> &a,const pair<double, double> &b)
+         auto it0=max_element(dsc0.begin(),dsc0.end(),[](const pair<double, double> &a,const pair<double, double> &b)
                                                                             {return a.second<b.second;});
-         if(it->second>=tempValue*0.8)
-         {
-             alpha.push_back(it->first);
-             points.insert(points.begin()+k+1, points[k]);
-             indexes.insert(indexes.begin()+k+1, indexes[k]);
-             descriptors.insert(descriptors.begin()+k+1, descriptors[k]);
-         }
+         alpha.push_back(it0->first);
+         dsc0.erase(it0);
+
+         auto it1=max_element(dsc0.begin(),dsc0.end(),[](const pair<double, double> &a,const pair<double, double> &b)
+                                                                                     {return a.second<b.second;});
+         if(it)
          dsc0.clear();
 
-         for(int indexAngle=0; indexAngle<alpha.size(); indexAngle++){
+
          for(int i=-windowSizeY/2;i<=windowSizeY/2;i+=pixels){
             if(i==0)i++;         
             for(int j=-windowSizeX/2;j<=windowSizeX/2;j+=pixels){
@@ -671,8 +664,8 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
                     for(int kj=0;kj<pixels;kj++)
                     {
 
-                       x=(j+kj)*cos(alpha[indexAngle])+(i+ki)*sin(alpha[indexAngle]);
-                       y=(i+ki)*cos(alpha[indexAngle])-(j+kj)*sin(alpha[indexAngle]);
+                       x=(j+kj)*cos(alpha)+(i+ki)*sin(alpha);
+                       y=(i+ki)*cos(alpha)-(j+kj)*sin(alpha);
                        calcGridCoordinates(x,y, &diagramX, &diagramY, &coefficientX, &coefficientY);
                        kk=diagramY*gridX+diagramX;
 
@@ -683,7 +676,7 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
                        value=gaussianDsc.getPoint(j+kj,i+ki)*sqrt(pow(L(points[k].x+j+kj+1,points[k].y+i+ki,sigma)-L(points[k].x+j+kj-1,points[k].y+i+ki,sigma),2)+
                                   pow(L(points[k].x+j+kj,points[k].y+i+ki+1,sigma)-L(points[k].x+j+kj,points[k].y+i+ki-1,sigma),2));
                        angle=angle>=0?angle:2*M_PI+angle;
-                       angle-=alpha[indexAngle];
+                       angle-=alpha;
                        angle=angle>=0?angle:2*M_PI+angle;
 
                        up=descriptors[k][kk].lower_bound(angle);
@@ -739,8 +732,7 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
 
 
          }
-
-         /*    double superNorm=0;
+    /*    double superNorm=0;
         for(int i=0; i<descriptors[k].size();i++){
          norm=accumulate(descriptors[k][i].begin(),descriptors[k][i].end(), 0.0, [=](double value, pair<double, double> p)
                    {return value+pow(p.second,2);});
@@ -750,8 +742,7 @@ void ImageFilterRep::calcDescriptorsRI(int n0, int n1, double sigma)
             low=prev(descriptors[k][kk].end());
          for(int i=0; i<descriptors[k].size();i++)
           for (auto& [key, value] : descriptors[k][0])value/=sqrt(superNorm);*/
-        if(alpha.size()>1) k+=(1-indexAngle);
-    }
+
 
     }
 }

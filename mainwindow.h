@@ -52,6 +52,8 @@ private slots:
 
     void on_matching_triggered();
 
+    void on_matching_RI_triggered();
+
 private:
     Ui::MainWindow *ui;
 

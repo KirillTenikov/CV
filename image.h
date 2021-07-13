@@ -7,15 +7,6 @@ struct Point {
     int x, y;
 };
 
-struct PointsIndexes
-{
-    vector <Point> points;
-    vector<int> indexes;
-};
-
-
-
-
 
 enum Mode{basic, continuation, reflection};
 
@@ -25,8 +16,10 @@ public:
     ImageFilterRep (vector<double> aData, int aWidth, int aHeight);
 
     static ImageFilterRep getGaussKernel(double sigma);
+    static ImageFilterRep getGaussWithEvenKernel(int width);
     static ImageFilterRep getGaussX(double sigma);
     static ImageFilterRep getGaussY(double sigma);
+    static ImageFilterRep getLaplassianKernel(double sigma);
     static ImageFilterRep getSobelXDerivative();
     static ImageFilterRep getSobelYDerivative();
 
@@ -35,9 +28,13 @@ public:
 
 
     double& getPoint(int x, int y);
+    double& getPointEvenKernel(int x, int y);
     double& getPixel(int x, int y);
     double  getPixelValue(int x, int y);
+    double getPixelValueInterpolation(double x, double y);
     double L(int x, int y, double sigma);
+    double interpolatedL(double x, double y, double sigma);
+
 
     vector<double>getData(){return data;}
     vector<Point>getPoints(){return points;}
@@ -61,7 +58,7 @@ public:
 
 
 
-    PointsIndexes getMaxPoints(int p, ImageFilterRep &minMax);
+    void getMaxPoints(int p, ImageFilterRep &minMax);
     void filterThreshold(double t, ImageFilterRep &minMax);
     ImageFilterRep moraveck(int window, int p);
     ImageFilterRep harris(int window,int p);
@@ -76,6 +73,7 @@ public:
     ImageFilterRep& sobelAngle();
 
     void calcDescriptors(int  n, int gridX, int gridY, int  pixels);
+    void calcDescriptorsRI(int  n0, int n1, double sigma);
     vector<pair<Point, Point>> findClosePoints(ImageFilterRep &image2);
 
 

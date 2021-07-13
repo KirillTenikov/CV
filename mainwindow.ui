@@ -88,6 +88,7 @@
      <string>Сопоставление точек</string>
     </property>
     <addaction name="matching"/>
+    <addaction name="matching_RI"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -165,6 +166,11 @@
   <action name="matching">
    <property name="text">
     <string>Сопоставить</string>
+   </property>
+  </action>
+  <action name="matching_RI">
+   <property name="text">
+    <string>Сопоставить RI</string>
    </property>
   </action>
  </widget>
